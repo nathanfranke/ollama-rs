@@ -21,6 +21,7 @@ const HISTORY_ID: &str = "1234";
 async fn chat(
     ollama: &mut Ollama,
     request: ChatMessageRequest,
+    tools: Vec<RawTool>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut stream = ollama
         .send_chat_messages_with_history_stream(request, HISTORY_ID)
@@ -75,8 +76,9 @@ async fn chat(
                 })
                 .collect::<Vec<_>>();
 
-            let request = ChatMessageRequest::new(MODEL_NAME.to_string(), messages);
-            Box::pin(chat(ollama, request)).await?;
+            let request =
+                ChatMessageRequest::new(MODEL_NAME.to_string(), messages).tools(tools.clone());
+            Box::pin(chat(ollama, request, tools.clone())).await?;
         }
     }
 
@@ -115,17 +117,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "[DEBUG] schema: {}",
         serde_json::to_string(&weather).unwrap()
     );
+    let tools = vec![weather];
 
-    let request = ChatMessageRequest::new(
-        MODEL_NAME.to_string(),
-        vec![ChatMessage::new(
-            MessageRole::User,
-            "How is weather today in Paris?".to_string(),
-        )],
-    )
-    .tools(vec![weather]);
+    let message = ChatMessage::new(
+        MessageRole::User,
+        "How is weather today in Paris?".to_string(),
+    );
+    let request =
+        ChatMessageRequest::new(MODEL_NAME.to_string(), vec![message]).tools(tools.clone());
 
-    chat(&mut ollama, request).await?;
+    chat(&mut ollama, request, tools.clone()).await?;
     println!();
 
     Ok(())
