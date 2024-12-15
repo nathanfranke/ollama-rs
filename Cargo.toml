@@ -1,0 +1,11 @@
+[package]
+name = "ollama-test"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+ollama-rs = { path = "ollama-rs", features = ["function-calling", "stream"] }
+serde = { version = "1.0.216", features = ["derive"] }
+serde_json = "1.0.133"
+tokio = { version = "1.42.0", features = ["macros", "rt-multi-thread"] }
+tokio-stream = "0.1.17"
