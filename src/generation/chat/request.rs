@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::generation::{options::GenerationOptions, parameters::FormatType};
 
-use super::ChatMessage;
+use super::{tools::RawTool, ChatMessage};
 
 /// A chat message request to Ollama.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -14,6 +14,7 @@ pub struct ChatMessageRequest {
     pub template: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub format: Option<FormatType>,
+    pub tools: Option<Vec<RawTool>>,
     pub(crate) stream: bool,
 }
 
@@ -25,6 +26,7 @@ impl ChatMessageRequest {
             options: None,
             template: None,
             format: None,
+            tools: None,
             // Stream value will be overwritten by Ollama::send_chat_messages_stream() and Ollama::send_chat_messages() methods
             stream: false,
         }
@@ -45,6 +47,12 @@ impl ChatMessageRequest {
     // The format to return a response in. Currently the only accepted value is `json`
     pub fn format(mut self, format: FormatType) -> Self {
         self.format = Some(format);
+        self
+    }
+
+    // The format to return a response in. Currently the only accepted value is `json`
+    pub fn tools(mut self, tools: Vec<RawTool>) -> Self {
+        self.tools = Some(tools);
         self
     }
 }

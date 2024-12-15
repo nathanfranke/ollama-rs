@@ -1,9 +1,12 @@
+use std::collections::HashMap;
+
 #[cfg(all(feature = "chat-history", feature = "stream"))]
 use async_stream::stream;
 use serde::{Deserialize, Serialize};
 
 use crate::Ollama;
 pub mod request;
+pub mod tools;
 use super::images::Image;
 use request::ChatMessageRequest;
 
@@ -262,6 +265,19 @@ pub struct ChatMessage {
     pub role: MessageRole,
     pub content: String,
     pub images: Option<Vec<Image>>,
+    pub tool_calls: Option<Vec<ToolCall>>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum ToolCall {
+    Function(FunctionCall),
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct FunctionCall {
+    pub name: String,
+    pub arguments: HashMap<String, String>,
 }
 
 impl ChatMessage {
@@ -270,6 +286,7 @@ impl ChatMessage {
             role,
             content,
             images: None,
+            tool_calls: None,
         }
     }
 
@@ -296,6 +313,11 @@ impl ChatMessage {
         } else {
             self.images = Some(vec![image]);
         }
+        self
+    }
+
+    pub fn tool_calls(mut self, tool_calls: Vec<ToolCall>) -> Self {
+        self.tool_calls = Some(tool_calls);
         self
     }
 }
